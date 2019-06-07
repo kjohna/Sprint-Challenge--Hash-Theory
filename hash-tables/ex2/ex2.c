@@ -1,8 +1,164 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hashtable.h"
 #include "ex2.h"
+#include "hashtable.h"
+
+// LinkedPair *create_pair(char *key, char *value)
+// {
+//   LinkedPair *pair = malloc(sizeof(LinkedPair));
+//   pair->key = key;
+//   pair->value = value;
+//   pair->next = NULL;
+
+//   return pair;
+// }
+
+// // djb2 hash function
+// unsigned int hash(char *str, int max)
+// {
+//   unsigned long hash = 5381;
+//   int c;
+//   unsigned char *u_str = (unsigned char *)str;
+
+//   while ((c = *u_str++))
+//   {
+//     hash = ((hash << 5) + hash) + c;
+//   }
+
+//   return hash % max;
+// }
+
+// void destroy_pair(LinkedPair *pair)
+// {
+//   if (pair != NULL)
+//     free(pair);
+// }
+
+// HashTable *create_hash_table(int capacity)
+// {
+//   HashTable *ht = malloc(sizeof(HashTable));
+//   ht->capacity = capacity;
+//   ht->storage = calloc(capacity, sizeof(LinkedPair *));
+
+//   return ht;
+// }
+
+// void hash_table_insert(HashTable *ht, char *key, char *value)
+// {
+//   unsigned int index = hash(key, ht->capacity);
+
+//   LinkedPair *current_pair = ht->storage[index];
+//   LinkedPair *last_pair;
+
+//   while (current_pair != NULL && strcmp(current_pair->key, key) != 0)
+//   {
+//     last_pair = current_pair;
+//     current_pair = last_pair->next;
+//   }
+
+//   if (current_pair != NULL)
+//   {
+//     current_pair->value = value;
+//   }
+//   else
+//   {
+//     LinkedPair *new_pair = create_pair(key, value);
+//     new_pair->next = ht->storage[index];
+//     ht->storage[index] = new_pair;
+//   }
+// }
+
+// void hash_table_remove(HashTable *ht, char *key)
+// {
+//   unsigned int index = hash(key, ht->capacity);
+
+//   LinkedPair *current_pair = ht->storage[index];
+//   LinkedPair *previous_pair = NULL;
+
+//   while (current_pair != NULL && strcmp(current_pair->key, key) != 0)
+//   {
+//     previous_pair = current_pair;
+//     current_pair = current_pair->next;
+//   }
+
+//   if (current_pair == NULL)
+//   {
+
+//     fprintf(stderr, "Unable to remove entry with key: %s\n", key);
+//   }
+//   else
+//   {
+
+//     if (previous_pair == NULL)
+//     { // Removing the first element in the Linked List
+//       ht->storage[index] = current_pair->next;
+//     }
+//     else
+//     {
+//       previous_pair->next = current_pair->next;
+//     }
+
+//     destroy_pair(current_pair);
+//   }
+// }
+
+// char *hash_table_retrieve(HashTable *ht, char *key)
+// {
+//   unsigned int index = hash(key, ht->capacity);
+
+//   LinkedPair *current_pair = ht->storage[index];
+
+//   while (current_pair != NULL)
+//   {
+//     if (strcmp(current_pair->key, key) == 0)
+//     {
+//       return current_pair->value;
+//     }
+//     current_pair = current_pair->next;
+//   }
+
+//   return NULL;
+// }
+
+// void destroy_hash_table(HashTable *ht)
+// {
+//   LinkedPair *current_pair;
+//   LinkedPair *pair_to_destroy;
+
+//   for (int i = 0; i < ht->capacity; i++)
+//   {
+//     current_pair = ht->storage[i];
+//     while (current_pair != NULL)
+//     {
+//       pair_to_destroy = current_pair;
+//       current_pair = current_pair->next;
+//       destroy_pair(pair_to_destroy);
+//     }
+//   }
+
+//   free(ht->storage);
+//   free(ht);
+// }
+
+// HashTable *hash_table_resize(HashTable *ht)
+// {
+//   HashTable *new_ht = create_hash_table(2 * ht->capacity);
+
+//   LinkedPair *current_pair;
+//   for (int i = 0; i < ht->capacity; i++)
+//   {
+//     current_pair = ht->storage[i];
+//     while (current_pair != NULL)
+//     {
+//       hash_table_insert(new_ht, current_pair->key, current_pair->value);
+//       current_pair = current_pair->next;
+//     }
+//   }
+//   destroy_hash_table(ht);
+
+//   return new_ht;
+// }
 
 char **reconstruct_trip(Ticket **tickets, int length)
 {
@@ -10,18 +166,38 @@ char **reconstruct_trip(Ticket **tickets, int length)
   char **route = malloc(length * sizeof(char *));
 
   /* YOUR CODE HERE */
+  // store tickets in ht, key: source value: destination
+  for (int i = 0; i < length; i++)
+  {
+    hash_table_insert(ht, tickets[i]->source, tickets[i]->destination);
+  }
+  // starting with NONE as source, start building route
+  char *destination = "", *source = "NONE";
+  int count = 0;
+  // loop until destination is NONE
+  while (strcmp(destination, "NONE"))
+  {
+    // the destination of each source gets stored
+    destination = hash_table_retrieve(ht, source);
+    route[count] = destination;
+    // then becomes the new source
+    source = destination;
+    count++;
+  }
 
+  // clean up
+  destroy_hash_table(ht);
+  free(route);
   return route;
 }
 
 void print_route(char **route, int length)
 {
-  for (int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++)
+  {
     printf("%s\n", route[i]);
   }
 }
-
-
 
 #ifndef TESTING
 int main(void)
@@ -46,7 +222,8 @@ int main(void)
 
   print_route(reconstruct_trip(tickets, 3), 3); // PDX, DCA, NONE
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
+  {
     free(tickets[i]);
   }
 
