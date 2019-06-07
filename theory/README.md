@@ -89,15 +89,28 @@ How can you represent the SUM and CARRY of adding THREE digits with a truth tabl
 ```
 A     B     C      carry   sum
 --------------------------------
-0     0     0        ?      ?
-0     0     1        ?      ?
-0     1     0        ?      ?
-0     1     1        ?      ?
-1     0     0        ?      ?
-1     0     1        ?      ?
-1     1     0        ?      ?
-1     1     1        ?      ?
+0     0     0        0      0
+0     0     1        0      1
+0     1     0        0      1
+0     1     1        1      0
+1     0     0        0      1
+1     0     1        1      0
+1     1     0        1      0
+1     1     1        1      1
 ```
 
-- SUM = ?
-- CARRY = ?
+```py
+# sum
+for A in [False, True]:
+  for B in [False, True]:
+    for C in [False, True]:
+      print(f"{A} {B} {C} : {(A ^ B) ^ C}")
+# carry
+for A in [False, True]:
+  for B in [False, True]:
+    for C in [False, True]:
+      print(f"{A} {B} {C} : {(A and (B or C)) or (B and C)}")
+```
+
+- SUM = (A xor B) xor C
+- CARRY = (A and (B or C)) or (B and C)
